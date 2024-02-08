@@ -49,17 +49,17 @@ void PartListener::on_participant_discovery(
     if (info.status == ParticipantDiscoveryInfo::DISCOVERED_PARTICIPANT)
     {
         ++discovered_count_;
-        std::cout << info.info.m_participantName << " discovered." << discovered_count_ << std::endl;
+        std::cout << "Participant \"" << info.info.m_participantName << "\" discovered. Total:" << discovered_count_ << std::endl;
     }
     else if (info.status == ParticipantDiscoveryInfo::DROPPED_PARTICIPANT)
     {
         --discovered_count_;
-        std::cout << info.info.m_participantName << " dropped." << discovered_count_ << std::endl;
+        std::cout << "Participant \"" << info.info.m_participantName << "\" dropped. Total: " << discovered_count_ << std::endl;
     }
     else if (info.status == ParticipantDiscoveryInfo::REMOVED_PARTICIPANT)
     {
         --discovered_count_;
-        std::cout << info.info.m_participantName << " removed." << discovered_count_ << std::endl;
+        std::cout << "Participant \"" << info.info.m_participantName << "\" removed. Total" << discovered_count_ << std::endl;
     }
 }
 
@@ -94,12 +94,15 @@ int main(
     std::istringstream("44.53.00.5f.45.50.52.4f.53.49.4d.41") >> pqos.wire_protocol().prefix;
     // Set SERVER's listening locator for PDP
     Locator_t locator;
-    IPLocator::setIPv4(locator, 0, 0, 0, 0);
+    IPLocator::setIPv4(locator, 127, 0, 0, 1);
     locator.port = 11811;
     pqos.wire_protocol().builtin.metatrafficUnicastLocatorList.push_back(locator);
 
+#if 0
+    /* Add a remote serve to which this server will connect */
+    // Set remote SERVER's GUID prefix
     RemoteServerAttributes remote_server_att;
-    remote_server_att.ReadguidPrefix("44.53.00.5f.45.50.52.4f.53.49.4d.41");
+    remote_server_att.ReadguidPrefix("44.53.01.5f.45.50.52.4f.53.49.4d.41");
 
     // Set remote SERVER's listening locator for PDP
     Locator_t remote_locator;
@@ -109,20 +112,7 @@ int main(
 
     // Add remote SERVER to SERVER's list of SERVERs
     pqos.wire_protocol().builtin.discovery_config.m_DiscoveryServers.push_back(remote_server_att);
-
-    // LOCATOR
-    #if 0
-    eprosima::fastrtps::rtps::Locator_t ddsLocator;
-    eprosima::fastrtps::rtps::IPLocator::setIPv4(ddsLocator, 239, 255, 0, 2);
-    ddsLocator.port = 7400;
-    pqos.wire_protocol().builtin.metatrafficMulticastLocatorList.push_back(ddsLocator);
-
-    eprosima::fastrtps::rtps::IPLocator::setIPv4(ddsLocator, 0, 0, 0, 0);
-    ddsLocator.port = 8400 + index * 2;
-    pqos.wire_protocol().builtin.metatrafficUnicastLocatorList.push_back(ddsLocator);
-    ddsLocator.port = 8401 + index * 2;
-    pqos.wire_protocol().default_unicast_locator_list.push_back(ddsLocator);
-    #endif
+#endif
     
     // AUTH AND ENCRYPTION
     pqos.properties().properties().emplace_back("dds.sec.auth.plugin",
@@ -130,9 +120,9 @@ int main(
     pqos.properties().properties().emplace_back("dds.sec.auth.builtin.PKI-DH.identity_ca",
             "file://certs/maincacert.pem");
     pqos.properties().properties().emplace_back("dds.sec.auth.builtin.PKI-DH.identity_certificate",
-            "file://certs/mainsubcert.pem");
+            "file://certs/mainpubcert.pem");
     pqos.properties().properties().emplace_back("dds.sec.auth.builtin.PKI-DH.private_key",
-            "file://certs/mainsubkey.pem");
+            "file://certs/mainpubkey.pem");
     pqos.properties().properties().emplace_back("dds.sec.access.plugin",
             "builtin.Access-Permissions");
     pqos.properties().properties().emplace_back("dds.sec.access.builtin.Access-Permissions.permissions_ca",
